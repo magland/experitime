@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+import experitime
+
+if __name__ == '__main__':
+    experitime.start_backend_cli()

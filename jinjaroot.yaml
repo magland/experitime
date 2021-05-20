@@ -1,0 +1,8 @@
+projectName: experitime
+pythonProjectVersion: 0.1.0
+webAppProjectVersion: 0.1.0
+projectAuthor: Jeremy Magland
+projectAuthorEmail: jmagland@flatironinstitute.org
+projectDescription: Web app for viewing experiments involving timeseries
+projectUrl: https://github.com/magland/experitime
+projectBugTrackerUrl: https://github.com/magland/experitime/issues
