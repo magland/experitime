@@ -2,8 +2,7 @@ import React, { useMemo } from "react"
 import CanvasWidget from "../../../commonComponents/CanvasWidget"
 import { useLayer, useLayers } from "../../../commonComponents/CanvasWidget/CanvasWidgetLayer"
 import {ChannelGeometryLayerProps, createChannelGeometryLayer} from './channelGeometryLayer'
-import { TimeseriesSelection } from "../../../pluginInterface"
-import { TimeseriesSelectionDispatch } from "../../../pluginInterface/TimeseriesSelection"
+import { TimeseriesSelection, TimeseriesSelectionDispatch } from "../../../pluginInterface/TimeseriesSelection"
 
 // Okay, so after some hoop-jumping, we've learned the RecordingInfo has:
 // - sampling frequency (number), - channel_ids (list of number),

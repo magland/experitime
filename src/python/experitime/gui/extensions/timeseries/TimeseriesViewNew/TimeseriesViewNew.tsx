@@ -2,8 +2,7 @@ import React, { FunctionComponent, useMemo } from 'react';
 import TimeseriesWidgetNew from './TimeseriesWidgetNew';
 import useTimeseriesData from './useTimeseriesModel';
 import { TimeseriesInfo } from '../../workspaceview/WorkspaceView/useExperimentInfo'
-import { TimeseriesSelection } from '../../../pluginInterface';
-import { TimeseriesSelectionDispatch } from '../../../pluginInterface/TimeseriesSelection';
+import { TimeseriesSelectionDispatch, TimeseriesSelection } from '../../../pluginInterface/TimeseriesSelection';
 import Splitter from '../../../commonComponents/Splitter/Splitter';
 import ChannelGeometryView from './ChannelGeometryView';
 

@@ -1,6 +1,5 @@
 import React, { FunctionComponent, useMemo } from 'react';
-import { TimeseriesSelection } from '../../../pluginInterface';
-import { TimeseriesSelectionDispatch } from '../../../pluginInterface/TimeseriesSelection';
+import { TimeseriesSelectionDispatch, TimeseriesSelection } from '../../../pluginInterface/TimeseriesSelection';
 import ChannelGeometryWidget from '../../channelgeometry/ChannelGeometryWidget/ChannelGeometryWidget';
 import { TimeseriesInfo } from '../../workspaceview/WorkspaceView/useExperimentInfo';
 

@@ -2,8 +2,7 @@ import { CanvasPainter } from '../../../commonComponents/CanvasWidget/CanvasPain
 import { CanvasDragEvent, CanvasWidgetLayer, ClickEvent, ClickEventType, DiscreteMouseEventHandler, DragHandler } from "../../../commonComponents/CanvasWidget/CanvasWidgetLayer";
 import { pointIsInEllipse, RectangularRegion, rectangularRegionsIntersect } from '../../../commonComponents/CanvasWidget/Geometry';
 import { ActionItem, DividerItem } from '../../../commonComponents/Toolbars';
-import { TimeseriesSelection } from '../../../pluginInterface';
-import { TimeseriesSelectionDispatch } from '../../../pluginInterface/TimeseriesSelection';
+import { TimeseriesSelection, TimeseriesSelectionDispatch } from '../../../pluginInterface/TimeseriesSelection';
 import setupChannelBoxes, { ChannelBox } from './setupChannelBoxes';
 
 export type ChannelGeometryLayerProps = {

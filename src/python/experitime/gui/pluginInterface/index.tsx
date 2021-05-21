@@ -5,7 +5,6 @@ import { WorkspaceRoute, WorkspaceRouteDispatch } from './WorkspaceRoute';
 import { WorkspaceViewPlugin } from "./WorkspaceViewPlugin";
 
 export type { WorkspaceRoute, WorkspaceRouteDispatch } from './WorkspaceRoute';
-export type { TimeseriesSelection } from './TimeseriesSelection'
 
 
 export type MainWindowProps = {
