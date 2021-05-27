@@ -20,6 +20,15 @@ const useWorkspaceRoute = () => {
                     workspaceUri
                 }
             }
+            else if (p[4] === 'timeseriesMultiple') {
+                const timeseriesNames = (p[5] || '').split(':')
+                return {
+                    page: 'timeseriesMultiple',
+                    experimentId,
+                    timeseriesNames,
+                    workspaceUri
+                }
+            }
             else {
                 return {
                     page: 'experiment',
@@ -44,6 +53,9 @@ const useWorkspaceRoute = () => {
         }
         else if (action.type === 'gotoTimeseriesPage') {
             setRoute({routePath: `/workspace/experiment/${action.experimentId}/timeseries/${action.timeseriesName}`})
+        }
+        else if (action.type === 'gotoTimeseriesMultiplePage') {
+            setRoute({routePath: `/workspace/experiment/${action.experimentId}/timeseriesMultiple/${action.timeseriesNames.join(':')}`})
         }
     }, [setRoute])
 

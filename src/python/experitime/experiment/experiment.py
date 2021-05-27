@@ -23,6 +23,7 @@ class Experiment:
         return self._timeseries[name]
     @staticmethod
     def deserialize(x: dict, *, label: str):
+        print(x)
         E = Experiment(label=label)
         for k, v in x.get('timeseries', {}).items():
             E.add_timeseries(k, Timeseries(v))

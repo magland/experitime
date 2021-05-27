@@ -1,7 +1,9 @@
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useCallback } from 'react';
+import Hyperlink from '../../../commonComponents/Hyperlink/Hyperlink';
 import { WorkspaceViewProps } from '../../../pluginInterface/WorkspaceViewPlugin';
 import ExperimentsView from './ExperimentsView';
 import ExperimentView from './ExperimentView';
+import TimeseriesMultipleView from './TimeseriesMultipleView';
 import TimeseriesView from './TimeseriesView';
 
 export interface LocationInterface {
@@ -15,6 +17,14 @@ export interface HistoryInterface {
 }
 
 const WorkspaceView: FunctionComponent<WorkspaceViewProps> = ({ workspace, workspaceDispatch, workspaceRoute, workspaceRouteDispatch, width=500, height=500 }) => {
+  const handleGotoExperiment = useCallback(() => {
+    if ((workspaceRoute.page === 'timeseries') || (workspaceRoute.page === 'timeseriesMultiple')) { // for typing
+      workspaceRouteDispatch({
+        type: 'gotoExperimentPage',
+        experimentId: workspaceRoute.experimentId
+      })
+    }
+  }, [workspaceRoute, workspaceRouteDispatch])
   if (workspaceRoute.page === 'experiment') {
     return (
       <ExperimentView
@@ -24,9 +34,29 @@ const WorkspaceView: FunctionComponent<WorkspaceViewProps> = ({ workspace, works
   }
   else if (workspaceRoute.page === 'timeseries') {
     return (
-      <TimeseriesView
-        {...{experimentId: workspaceRoute.experimentId, timeseriesName: workspaceRoute.timeseriesName, workspace, workspaceDispatch, workspaceRoute, workspaceRouteDispatch, width, height}}
-      />
+      <div>
+        <div style={{marginBottom: 10}}>
+          <Hyperlink onClick={handleGotoExperiment}>Back to experiment</Hyperlink>
+        </div>
+        <div style={{marginBottom: 10}}>
+          {workspaceRoute.timeseriesName}
+        </div>
+        <TimeseriesView
+          {...{experimentId: workspaceRoute.experimentId, timeseriesName: workspaceRoute.timeseriesName, workspace, workspaceDispatch, workspaceRoute, workspaceRouteDispatch, width, height: height - 45}}
+        />
+      </div>
+    )
+  }
+  else if (workspaceRoute.page === 'timeseriesMultiple') {
+    return (
+      <div>
+        <div style={{marginBottom: 10}}>
+          <Hyperlink onClick={handleGotoExperiment}>Back to experiment</Hyperlink>
+        </div>
+        <TimeseriesMultipleView
+          {...{experimentId: workspaceRoute.experimentId, timeseriesNames: workspaceRoute.timeseriesNames, workspace, workspaceDispatch, workspaceRoute, workspaceRouteDispatch, width, height: height - 45}}
+        />
+      </div>
     )
   }
   else {

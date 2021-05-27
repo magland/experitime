@@ -281,8 +281,8 @@ const TimeWidgetNew = (props: Props) => {
     }, [selectionDispatch])
 
     const handleTimeShiftFrac = useCallback((frac: number) => {
-        // selectionDispatch({type: 'TimeShiftFrac', frac})
-    }, [])
+        selectionDispatch({type: 'TimeShiftFrac', frac})
+    }, [selectionDispatch])
 
     const handleCurrentTimeChanged = useCallback((t: number | null) => {
         selectionDispatch({type: 'SetCurrentTimepoint', currentTimepoint: t})
@@ -293,12 +293,12 @@ const TimeWidgetNew = (props: Props) => {
     }, [selectionDispatch])
 
     const handleGotoHome = useCallback(() => {
-        // selectionDispatch({type: 'CurrentTimepointHome'})
-    }, [])
+        selectionDispatch({type: 'GotoHome'})
+    }, [selectionDispatch])
 
     const handleGotoEnd = useCallback(() => {
-        // selectionDispatch({type: 'CurrentTimepointEnd'})
-    }, [])
+        selectionDispatch({type: 'GotoEnd'})
+    }, [selectionDispatch])
 
     const handleRepaintTimeEstimate = useCallback((ms: number) => {
         const refreshRateEstimate = 1000 / ms
@@ -317,12 +317,12 @@ const TimeWidgetNew = (props: Props) => {
     }, [selectionDispatch])
 
     const handleShiftTimeLeft = useCallback(() => {
-        // selectionDispatch({type: 'TimeShiftFrac', frac: -0.2})
-    }, [])
+        selectionDispatch({type: 'TimeShiftFrac', frac: -0.2})
+    }, [selectionDispatch])
 
     const handleShiftTimeRight = useCallback(() => {
-        // selectionDispatch({type: 'TimeShiftFrac', frac: 0.2})
-    }, [])
+        selectionDispatch({type: 'TimeShiftFrac', frac: 0.2})
+    }, [selectionDispatch])
 
     const bottomBarInfo = {
         show: true,
@@ -403,8 +403,8 @@ const TimeWidgetNew = (props: Props) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const shiftTimeRange = (timeRange: {min: number, max: number}, shift: number): {min: number, max: number} => {
     return {
-        min: Math.floor(timeRange.min + shift),
-        max: Math.floor(timeRange.max + shift)
+        min: timeRange.min + shift,
+        max: timeRange.max + shift
     }
 }
 

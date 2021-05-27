@@ -1,12 +1,14 @@
 from time import time
-from typing import List, Literal, Union
+from typing import Dict, List, Literal, Union
 import kachery_p2p as kp
 import numpy as np
 from numpy.core.numeric import Infinity
+from ._estimate_sampling_frequency import _estimate_sampling_frequency
 
 class TimeseriesModelNpyV1:
-    def __init__(self, *, channel_names: List[str], timestamps_uri: str, values_uri: str, type: Union[Literal['continuous'], Literal['discrete']], sampling_frequency: Union[float, None]=None):
+    def __init__(self, *, channel_names: List[str], timestamps_uri: str, values_uri: str, type: Union[Literal['continuous'], Literal['discrete']], sampling_frequency: Union[float, None]=None, channel_properties: Union[Dict[str, dict], None]=None):
         self._channel_names = channel_names
+        self._channel_properties = channel_properties
         timestamps = kp.load_npy(timestamps_uri)
         values = kp.load_npy(values_uri)
         assert timestamps is not None
@@ -29,6 +31,9 @@ class TimeseriesModelNpyV1:
     def channel_names(self):
         return self._channel_names
     @property
+    def channel_properties(self):
+        return self._channel_properties
+    @property
     def num_samples(self):
         return len(self._timestamps)
     @property
@@ -46,11 +51,3 @@ class TimeseriesModelNpyV1:
     @property
     def sampling_frequency(self):
         return self._sampling_frequency
-
-def _estimate_sampling_frequency(timestamps: np.ndarray):
-    if len(timestamps) <= 1:
-        return 0
-    deltas = np.diff(timestamps)
-    median_delta = np.median(deltas)
-    deltas_excluding_outliers = deltas[(median_delta * 0.9 < deltas) & (deltas < median_delta * 1.1)]
-    return float(np.mean(deltas_excluding_outliers))

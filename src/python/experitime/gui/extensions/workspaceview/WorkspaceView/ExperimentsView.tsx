@@ -1,10 +1,12 @@
 import { Button } from '@material-ui/core';
 import React, { FunctionComponent, useCallback } from 'react';
-import Splitter from '../../../commonComponents/Splitter/Splitter';
+import MarkdownDialog from '../../../commonComponents/Markdown/MarkdownDialog';
 import { useVisible } from '../../../labbox';
+import ModalWindow from '../../../labbox/ApplicationBar/ModalWindow';
 import { WorkspaceViewProps } from '../../../pluginInterface/WorkspaceViewPlugin';
 import AddExperimentInstructions from './AddExperimentInstructions';
 import ExperimentsTable from './ExperimentsTable';
+import workspacePermissionsMd from './workspacePermissions.md.gen'
 
 export interface LocationInterface {
   pathname: string
@@ -24,31 +26,42 @@ const ExperimentsView: FunctionComponent<WorkspaceViewProps> = ({ workspace, wor
       })
   }, [workspaceRouteDispatch])
 
-  const {visible: instructionsVisible, show: showInstructions} = useVisible()
+  const {visible: addExperimentInstructionsVisible, show: showAddExperimentInstructions, hide: hideAddExperimentInstructions} = useVisible()
+  const {visible: workspaceSettingsVisible, show: showWorkspaceSettings, hide: hideWorkspaceSettings} = useVisible()
+
+  const handleDeleteExperiments = useCallback((experimentIds: string[]) => {
+      workspaceDispatch && workspaceDispatch({
+        type: 'deleteExperiments',
+        experimentIds
+      })
+  }, [workspaceDispatch])
+
+  const readOnly = workspaceDispatch ? false : true
+
   return (
-    <Splitter
-            {...{width, height}}
-            initialPosition={300}
-            positionFromRight={true}
-    >
+    <div>
       <div>
-          {
-              !instructionsVisible && (
-                  <div><Button onClick={showInstructions}>Add experiment</Button></div>
-              )
-          }
-          <ExperimentsTable
-            experiments={workspace.experiments}
-            onExperimentSelected={handleExperimentSelected}
-          />
+        <div><Button onClick={showAddExperimentInstructions}>Add experiment</Button></div>
+        <div><Button onClick={showWorkspaceSettings}>Set workspace permissions</Button></div>
+        <ExperimentsTable
+          experiments={workspace.experiments}
+          onExperimentSelected={handleExperimentSelected}
+          onDeleteExperiments={readOnly ? undefined : handleDeleteExperiments}
+        />
       </div>
-      {
-          instructionsVisible && (
-              <AddExperimentInstructions />
-          )
-      }
-      
-    </Splitter>
+      <ModalWindow
+            open={addExperimentInstructionsVisible}
+            onClose={hideAddExperimentInstructions}
+        >
+          <AddExperimentInstructions />
+      </ModalWindow>
+      <MarkdownDialog
+        visible={workspaceSettingsVisible}
+        onClose={hideWorkspaceSettings}
+        source={workspacePermissionsMd}
+        substitute={{workspaceUri: workspaceRoute.workspaceUri}}
+      />
+    </div>
   )
 }
 

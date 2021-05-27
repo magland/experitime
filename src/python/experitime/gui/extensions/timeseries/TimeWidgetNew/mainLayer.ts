@@ -153,8 +153,8 @@ export const handleMouseOut: MousePresenceEventHandler = (e: MousePresenceEvent,
 
 const shiftTimeRange = (timeRange: {min: number, max: number}, shift: number): {min: number, max: number} => {
     return {
-        min: Math.floor(timeRange.min + shift),
-        max: Math.floor(timeRange.max + shift)
+        min: timeRange.min + shift,
+        max: timeRange.max + shift
     }
 }
 

@@ -13,6 +13,9 @@ export type WorkspaceAction = {
     experimentId: string
     label: string
     uri: string
+} | {
+    type: 'deleteExperiments'
+    experimentIds: string[]
 }
 
 const workspaceReducer = (s: WorkspaceState, a: WorkspaceAction): WorkspaceState => {
@@ -22,6 +25,9 @@ const workspaceReducer = (s: WorkspaceState, a: WorkspaceAction): WorkspaceState
             ...s,
             experiments: [...s.experiments, {experimentId: a.experimentId, uri: a.uri, label: a.label}]
         }
+    }
+    else if (a.type === 'deleteExperiments') {
+        return {...s, experiments: s.experiments.filter(x => (!(a.experimentIds.includes(x.experimentId))))}
     }
     return s
 }

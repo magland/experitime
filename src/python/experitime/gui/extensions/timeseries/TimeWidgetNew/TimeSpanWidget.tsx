@@ -89,7 +89,7 @@ const createTimeSpanLayer = () => {
                 const t = e.point[0]
                 props.onCurrentTimeChanged(t)
                 const span = timeRange.max - timeRange.min
-                props.onTimeRangeChanged({min: Math.floor(t - span / 2), max: Math.floor(t + span / 2)})
+                props.onTimeRangeChanged({min: t - span / 2, max: t + span / 2})
             }
         }
     }

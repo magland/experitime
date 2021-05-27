@@ -11,9 +11,13 @@ const useSetupTimeseriesSelection = (timeseriesInfo: TimeseriesInfo | undefined)
     const [timeseriesSelection, timeseriesSelectionDispatch] = useReducer(timeseriesSelectionReducer, {})
     useEffect(() => {
         if (!timeseriesInfo) return
+        const maxTimeSpan = 1e5 / timeseriesInfo.samplingFrequency
         timeseriesSelectionDispatch({
-            type: 'SetTimeRange',
-            timeRange: {min: timeseriesInfo.startTime, max: timeseriesInfo.endTime}
+            type: 'Set',
+            state: {
+                maxTimeSpan,
+                timeRange: {min: timeseriesInfo.startTime, max: Math.min(timeseriesInfo.startTime + maxTimeSpan, timeseriesInfo.endTime)}
+            }
         })
     }, [timeseriesInfo])
 

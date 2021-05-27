@@ -1,4 +1,5 @@
-import React, { FunctionComponent, useMemo } from 'react'
+import { Button } from '@material-ui/core'
+import React, { FunctionComponent, useCallback, useMemo, useState } from 'react'
 import Hyperlink from '../../../commonComponents/Hyperlink/Hyperlink'
 import NiceTable from '../../../commonComponents/NiceTable/NiceTable'
 import { ExperimentInfo } from './useExperimentInfo'
@@ -6,14 +7,16 @@ import { ExperimentInfo } from './useExperimentInfo'
 type Props = {
     experimentInfo: ExperimentInfo
     onClickTimeseries?: (timeseriesName: string) => void
+    onViewTimeseriesMultiple?: (timeseriesNames: string[]) => void
 }
 
-const ExperimentTimeseriesTable: FunctionComponent<Props> = ({experimentInfo, onClickTimeseries}) => {
+const ExperimentTimeseriesTable: FunctionComponent<Props> = ({experimentInfo, onClickTimeseries, onViewTimeseriesMultiple}) => {
     const timeseriesNames = useMemo(() => {
         const ret = Object.keys(experimentInfo.timeseries).sort()
         ret.sort()
         return ret
     }, [experimentInfo.timeseries])
+    const [selectedTimeseriesNames, setSelectedTimeseriesNames] = useState<string[]>([])
 
     const columns = useMemo(() => ([
         {
@@ -52,11 +55,25 @@ const ExperimentTimeseriesTable: FunctionComponent<Props> = ({experimentInfo, on
         })
     ), [timeseriesNames, experimentInfo, onClickTimeseries])
 
+    const handleViewSelected = useCallback(() => {
+        onViewTimeseriesMultiple && onViewTimeseriesMultiple(selectedTimeseriesNames)
+    }, [onViewTimeseriesMultiple, selectedTimeseriesNames])
+
     return (
-        <NiceTable
-            columns={columns}
-            rows={rows}
-        />
+        <div>
+            {
+                selectedTimeseriesNames.length > 0 && (
+                    <Button onClick={handleViewSelected}>View selected</Button>
+                )
+            }
+            <NiceTable
+                columns={columns}
+                rows={rows}
+                selectedRowKeys={selectedTimeseriesNames}
+                onSelectedRowKeysChanged={setSelectedTimeseriesNames}
+                selectionMode="multiple"
+            />
+        </div>
     )
 }
 

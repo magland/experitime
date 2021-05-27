@@ -18,6 +18,7 @@ interface Props {
     visibleChannelNames?: string[] | null
     timeseriesSelection?: TimeseriesSelection
     timeseriesSelectionDispatch?: TimeseriesSelectionDispatch
+    timeseriesType: 'continuous' | 'discrete'
 }
 
 const channelColors = [
@@ -33,7 +34,7 @@ class Panel {
     _timeRange: {min: number, max: number} | null = null
     _yScale: number = 1
     _pixelWidth: number | null = null // for determining the downsampling factor
-    constructor(private channelName: string, private channelColor: string, private timeseriesData: TimeseriesData, private y_offset: number, private y_scale_factor: number) {
+    constructor(private channelName: string, private channelColor: string, private timeseriesData: TimeseriesData, private y_offset: number, private y_scale_factor: number, private timeseriesType: 'continuous' | 'discrete') {
         // timeseriesData.onDataSegmentSet((ds_factor, t1, t2) => {
         //     const timeRange = this._timeRange
         //     if (!timeRange) return
@@ -56,12 +57,13 @@ class Panel {
         // this._updateHandler && this._updateHandler()
     }
     paint(painter: CanvasPainter, completenessFactor: number) {
+        console.log('--- timeseries type', this.timeseriesType)
         const timeRange = this._timeRange
         if (!timeRange) return
 
         const deltaT = 1 / this.timeseriesData.samplingFrequency
 
-        let downsample_factor = this._determineDownsampleFactor(completenessFactor)
+        let downsample_factor = this.timeseriesType === 'continuous' ? this._determineDownsampleFactor(completenessFactor) : 1
         if (downsample_factor === null) return
 
         let t1, t2: number
@@ -88,12 +90,18 @@ class Panel {
                 let val = data.values[ii];
                 if (!isNaN(val)) {
                     let val2 = ((val + this.y_offset) * this.y_scale_factor * this._yScale) / 2 + 0.5
-                    if (penDown) {
-                        pp.lineTo(tt, val2);    
+                    if (this.timeseriesType === 'continuous') {
+                        if (penDown) {
+                            pp.lineTo(tt, val2);    
+                        }
+                        else {
+                            pp.moveTo(tt, val2);
+                            penDown = true;
+                        }
                     }
                     else {
-                        pp.moveTo(tt, val2);
-                        penDown = true;
+                        pp.moveTo(tt, 0)
+                        pp.lineTo(tt, val2)
                     }
                 }
                 else {
@@ -161,7 +169,7 @@ class Panel {
 }
 
 const TimeseriesWidgetNew = (props: Props) => {
-    const { timeseriesData, width, height, y_scale_factor, channel_names, visibleChannelNames, timeseriesSelection: externalSelection, timeseriesSelectionDispatch: externalSelectionDispatch } = props
+    const { timeseriesData, width, height, y_scale_factor, channel_names, visibleChannelNames, timeseriesSelection: externalSelection, timeseriesSelectionDispatch: externalSelectionDispatch, timeseriesType } = props
     const [panels, setPanels] = useState<Panel[]>([])
     const [timeseriesSelection, timeseriesSelectionDispatch] = useBufferedDispatch(timeseriesSelectionReducer, externalSelection || {}, useMemo(() => ((state: TimeseriesSelection) => {externalSelectionDispatch && externalSelectionDispatch({type: 'Set', state})}), [externalSelectionDispatch]), 200)
     
@@ -180,14 +188,14 @@ const TimeseriesWidgetNew = (props: Props) => {
             const channel_name = timeseriesData.channelNames[channelInd]
             if ((!visibleChannelNames) || (visibleChannelNames.includes(channel_name))) {
                 const color = channelColors[channelInd % channelColors.length]
-                const p = new Panel(channel_name, color, timeseriesData, 0, y_scale_factor) // y_offsets[ch] replaced with 0
+                const p = new Panel(channel_name, color, timeseriesData, 0, y_scale_factor, timeseriesType) // y_offsets[ch] replaced with 0
                 p.setPixelWidth(width)
                 p.setYScale(timeseriesSelection.ampScaleFactor || 1)
                 panels0.push(p)
             }
         }
         setPanels(panels0)
-    }, [channel_names, setPanels, timeseriesData, y_scale_factor, width, timeseriesSelection.ampScaleFactor, timeseriesSelection.timeRange, visibleChannelNames])
+    }, [channel_names, setPanels, timeseriesData, y_scale_factor, width, timeseriesSelection.ampScaleFactor, timeseriesSelection.timeRange, visibleChannelNames, timeseriesType])
     useEffect(() => {
         if (actions === null) {
             const a: TimeWidgetAction[] = [
@@ -222,8 +230,8 @@ const TimeseriesWidgetNew = (props: Props) => {
             width={width}
             height={height}
             samplerate={timeseriesData.samplingFrequency}
-            startTimeSpan={1e7 / timeseriesData.samplingFrequency / timeseriesData.channelNames.length}
-            maxTimeSpan={1e7 / timeseriesData.samplingFrequency / timeseriesData.channelNames.length}
+            startTimeSpan={1e5 / timeseriesData.samplingFrequency}
+            maxTimeSpan={1e5 / timeseriesData.samplingFrequency}
             timeseriesStartTime={timeseriesData.startTime}
             timeseriesEndTime={timeseriesData.endTime}
             selection={timeseriesSelection}

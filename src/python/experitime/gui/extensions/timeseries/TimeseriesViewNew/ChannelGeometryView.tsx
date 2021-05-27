@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useMemo } from 'react';
 import { TimeseriesSelectionDispatch, TimeseriesSelection } from '../../../pluginInterface/TimeseriesSelection';
 import ChannelGeometryWidget from '../../channelgeometry/ChannelGeometryWidget/ChannelGeometryWidget';
-import { TimeseriesInfo } from '../../workspaceview/WorkspaceView/useExperimentInfo';
+import { TimeseriesInfo, ChannelPropertiesInterface } from '../../workspaceview/WorkspaceView/useExperimentInfo';
 
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 
 const ChannelGeometryView: FunctionComponent<Props> = ({timeseriesInfo, width, height, selection, visibleChannelNames, selectionDispatch}) => {
     const ri = timeseriesInfo
-    const channels = useMemo(() => (ri ? zipChannels(ri.channelGeometry || ri.channelNames.map((name, i) => [i, 0]), ri.channelNames) : []).filter(a => (visibleChannelNames.includes(a.id))), [ri, visibleChannelNames])
+    const channels = useMemo(() => (ri ? zipChannels(ri.channelProperties, ri.channelNames) : []).filter(a => (visibleChannelNames.includes(a.id))), [ri, visibleChannelNames])
     if (!ri) {
         return (
             <div>No recording info found for recording.</div>
@@ -32,12 +32,20 @@ const ChannelGeometryView: FunctionComponent<Props> = ({timeseriesInfo, width, h
     );
 }
 
-const zipChannels = (locations: number[][], ids: string[]) => {
-    if (locations && ids && ids.length !== locations.length) throw Error('Channel ID count does not match location count.')
-    return ids.map((x, index) => {
-        const loc = locations[index]
-        return { label: x + '', id: x, x: loc[0], y: loc[1] }
-    })
+const zipChannels = (channelProperties: {[key: string]: ChannelPropertiesInterface} | undefined, ids: string[]) => {
+    return (ids.map((id, i) => {
+        const loc = ((channelProperties || {})[id] || {}).location
+        const {x, y} = loc === undefined ? ({
+            x: i,
+            y: 0
+        }) : ({
+            x: loc[0],
+            y: loc[1] || 0
+        })
+        return {
+            label: id, id, x, y
+        }
+    }))
 }
 
 export default ChannelGeometryView

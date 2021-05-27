@@ -1,4 +1,5 @@
 import React, { FunctionComponent, useCallback, useMemo } from 'react';
+import Hyperlink from '../../../commonComponents/Hyperlink/Hyperlink';
 import { TaskStatusView } from '../../../labbox';
 import { WorkspaceExperiment } from '../../../pluginInterface/workspaceReducer';
 import { WorkspaceViewProps } from '../../../pluginInterface/WorkspaceViewPlugin';
@@ -29,16 +30,30 @@ const ExperimentView: FunctionComponent<WorkspaceViewProps & {experimentId: stri
         timeseriesName
       })
   }, [workspaceRouteDispatch, experimentId])
+  const handleGotoWorkspace = useCallback(() => {
+      workspaceRouteDispatch({
+        type: 'gotoMainPage'
+      })
+  }, [workspaceRouteDispatch])
+  const handleViewTimeseriesMultiple = useCallback((timeseriesNames: string[]) => {
+    workspaceRouteDispatch({
+      type: 'gotoTimeseriesMultiplePage',
+      experimentId,
+      timeseriesNames
+    })
+  }, [experimentId, workspaceRouteDispatch])
   if (!experiment) return <span>Experiment not found.</span>
   if (!experimentInfo) {
     return <TaskStatusView task={task} label="get experiment info" />
   }
   return (
     <div>
-      <h3>Experiment: {experiment.label} ({experiment.experimentId})</h3>
+      <div style={{marginBottom: 20}}><Hyperlink onClick={handleGotoWorkspace}>Back to workspace</Hyperlink></div>
+      <div style={{marginBottom: 10}}>Experiment: {experiment.label} ({experiment.experimentId})</div>
       <ExperimentTimeseriesTable
         experimentInfo={experimentInfo}
         onClickTimeseries={handleClickTimeseries}
+        onViewTimeseriesMultiple={handleViewTimeseriesMultiple}
       />
     </div>
   )

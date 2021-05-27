@@ -4,7 +4,6 @@ import Hyperlink from '../../../commonComponents/Hyperlink/Hyperlink';
 
 export interface BottomBarInfo {
     currentTime?: number | null
-    samplerate: number
     timeRange?: {min: number, max: number} | null
     statusText: string
 }
@@ -29,14 +28,12 @@ const TimeWidgetBottomBar: FunctionComponent<Props> = (props) => {
             <CurrentTimeControl
                 width={180}
                 currentTime={info.currentTime || null}
-                samplerate={info.samplerate}
                 onChange={onCurrentTimeChanged}
             />
                 &nbsp;
             <TimeRangeControl
                 width={250}
                 timeRange={info.timeRange || null}
-                samplerate={info.samplerate}
                 onChange={props.onTimeRangeChanged}
             />
             <span>{info.statusText}</span>
@@ -47,15 +44,14 @@ const TimeWidgetBottomBar: FunctionComponent<Props> = (props) => {
 interface CurrentTimeControlProps {
     width: number
     currentTime: number | null
-    samplerate: number
     onChange: (t: number) => void
 }
 
 const CurrentTimeControl: FunctionComponent<CurrentTimeControlProps> = (props) => {
-    const { currentTime, samplerate, width, onChange } = props
+    const { currentTime, width, onChange } = props
 
     const _handleChange = (txt: string) => {
-        let t = fromHumanTime(txt, samplerate);
+        let t = fromHumanTime(txt);
         if (t !== undefined) {
             onChange(t);
         }
@@ -75,7 +71,7 @@ const CurrentTimeControl: FunctionComponent<CurrentTimeControlProps> = (props) =
             <EditableText
                 width={width - 50}
                 title="Click to edit current time"
-                text={toHumanTime(currentTime, samplerate)}
+                text={toHumanTime(currentTime)}
                 onChange={_handleChange}
             />
         </div>
@@ -84,14 +80,13 @@ const CurrentTimeControl: FunctionComponent<CurrentTimeControlProps> = (props) =
 
 interface TimeRangeControlProps {
     width: number
-    samplerate: number
     timeRange: {min: number, max: number} | null
     onChange: (tr: {min: number, max: number}) => void
 }
 
 const TimeRangeControl: FunctionComponent<TimeRangeControlProps> = (props) => {
     const _handleChange = (txt: string) => {
-        let tr = fromHumanTimeRange(txt, props.samplerate);
+        let tr = fromHumanTimeRange(txt);
         if ((tr === undefined) || (tr === null)) {
             console.warn(`Invalid human time range string: ${txt}`);
         }
@@ -99,7 +94,7 @@ const TimeRangeControl: FunctionComponent<TimeRangeControlProps> = (props) => {
             props.onChange(tr)
         }
     }
-    const { timeRange, samplerate } = props;
+    const { timeRange } = props;
     let style0 = {
         width: props.width,
         padding: 5,
@@ -111,45 +106,45 @@ const TimeRangeControl: FunctionComponent<TimeRangeControlProps> = (props) => {
             <EditableText
                 width={props.width - 50}
                 title="Click to edit time range"
-                text={toHumanTimeRange(timeRange, samplerate)}
+                text={toHumanTimeRange(timeRange)}
                 onChange={_handleChange}
             />
         </div>
     )
 }
 
-const toHumanTimeRange = (tr: {min: number, max: number} | null, samplerate: number) => {
+const toHumanTimeRange = (tr: {min: number, max: number} | null) => {
     if (!tr) return 'none';
-    return `${toHumanTime(tr.min, samplerate, {nounits: true, num_digits: 3})} - ${toHumanTime(tr.max, samplerate, {num_digits: 3})}`;
+    return `${toHumanTime(tr.min, {nounits: true, num_digits: 3})} - ${toHumanTime(tr.max, {num_digits: 3})}`;
 }
 
-function fromHumanTimeRange(txt: string, samplerate: number) {
+function fromHumanTimeRange(txt: string) {
     if (txt === 'none') return null;
     let a = txt.split('-');
     if (a.length !== 2) return undefined;
-    let t1 = fromHumanTime(a[0], samplerate, {nounits: true});
-    let t2 = fromHumanTime(a[1], samplerate);
+    let t1 = fromHumanTime(a[0], {nounits: true});
+    let t2 = fromHumanTime(a[1]);
     if ((t1 === undefined) || (t2 === undefined))
         return undefined;
     return {min: t1, max: t2}
 }
 
-const toHumanTime = (t: number | null, samplerate: number, opts: {num_digits?: number, nounits?: boolean}={}): string => {
+const toHumanTime = (t: number | null, opts: {num_digits?: number, nounits?: boolean}={}): string => {
     if (t === null) return 'none';
-    let sec = round(t / samplerate, opts.num_digits || 6);
+    let sec = round(t, opts.num_digits || 6);
     if (opts.nounits) return sec + '';
     else return `${sec} s`;
 }
 
-const fromHumanTime = (txt: string, samplerate: number, opts: {nounits?: boolean} = {}): number | undefined => {
+const fromHumanTime = (txt: string, opts: {nounits?: boolean} = {}): number | undefined => {
     if (txt === 'none') return undefined;
     const list = txt.split(/(\s+)/).filter( e => e.trim().length > 0);
     if (list.length === 1) {
         if (opts.nounits) {
-            return fromHumanTime(txt + ' s', samplerate, {nounits: false});
+            return fromHumanTime(txt + ' s', {nounits: false});
         }
         if (txt.endsWith('s'))
-            return fromHumanTime(txt.slice(0, txt.length - 1) + ' s', samplerate);
+            return fromHumanTime(txt.slice(0, txt.length - 1) + ' s');
         else
             return undefined;
     }
@@ -158,7 +153,7 @@ const fromHumanTime = (txt: string, samplerate: number, opts: {nounits?: boolean
         if (isNaN(val)) return undefined;
         let units = list[1];
         if (units === 's') {
-            return val * samplerate;
+            return val;
         }
         else {
             return undefined;

@@ -70,6 +70,7 @@ const TimeseriesViewNew: FunctionComponent<Props> = ({timeseriesInfo, opts, time
                                 visibleChannelNames={opts.channelSelectPanel ? (selectedChannelNames.length > 0 ? selectedChannelNames : visibleChannelNames) : null}
                                 timeseriesSelection={timeseriesSelection}
                                 timeseriesSelectionDispatch={timeseriesSelectionDispatch}
+                                timeseriesType={timeseriesInfo.type}
                             />
                         ) : (
                             <div>Select one or more electrodes</div>

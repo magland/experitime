@@ -71,8 +71,8 @@ const useTimeseriesData = (timeseriesInfo: TimeseriesInfo): TimeseriesData | nul
 
   // const segment_size_times_num_channels = 100000
   // const num_channels = timeseriesInfo.channelNames.length
-  const segment_size_timepoints = 1e6
-  const segment_duration_sec = segment_size_timepoints / timeseriesInfo.samplingFrequency
+  const est_segment_size_timepoints = 1e6
+  const segment_duration_sec = Math.ceil(est_segment_size_timepoints / timeseriesInfo.samplingFrequency) // round up to integer so that we don't get any rounding issues
 
   const getChannelData = useMemo(() => ((channel_name: string, t1: number, t2: number, ds_factor: number): {timestamps: number[], values: number[]} => {
     // Here we are retrieving the channel data, between for timepoints [t1, t2), with downsampling factor ds_factor

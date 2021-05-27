@@ -17,6 +17,13 @@ export interface TimeseriesSelection {
 const correctTimeseriesSelection = (s: TimeseriesSelection) => {
     let ret: TimeseriesSelection = s
     if (ret.timeRange) {
+        if ((ret.startTime !== undefined) && (ret.endTime !== undefined) && (s.maxTimeSpan !== undefined))  {
+            if (ret.timeRange.max > ret.timeRange.min + s.maxTimeSpan) {
+                ret = {...ret, timeRange: {min: ret.timeRange.min, max: ret.timeRange.min + s.maxTimeSpan} }
+            }
+        }
+    }
+    if (ret.timeRange) {
         if ((ret.startTime !== undefined) && (ret.endTime !== undefined))  {
             if (ret.timeRange.max > ret.endTime) {
                 ret = {...ret, timeRange: {min: ret.timeRange.min - ret.timeRange.max + ret.endTime, max: ret.timeRange.max - ret.timeRange.max + ret.endTime} }
@@ -44,50 +51,50 @@ export const sleepMsec = (m: number) => new Promise(r => setTimeout(r, m));
 
 export type TimeseriesSelectionDispatch = (action: TimeseriesSelectionAction) => void
 
-type SetStartEndTimeTimeseriesSelectionAction = {
+type SetStartEndTime = {
     type: 'SetStartEndTime',
     startTime?: number
     endTime?: number
 }
 
-type SetTimeseriesSelectionTimeseriesSelectionAction = {
+type SetTimeseriesSelection = {
     type: 'SetTimeseriesSelection',
     timeseriesSelection: TimeseriesSelection
 }
 
-type SetSelectedChannelNamesTimeseriesSelectionAction = {
+type SetSelectedChannelNames = {
     type: 'SetSelectedChannelNames',
     selectedChannelNames: string[]
 }
 
-type SetVisibleChannelNamesTimeseriesSelectionAction = {
+type SetVisibleChannelNames = {
     type: 'SetVisibleChannelNames',
     visibleChannelNames: string[]
 }
 
-type SetCurrentTimepointTimeseriesSelectionAction = {
+type SetCurrentTimepoint = {
     type: 'SetCurrentTimepoint',
     currentTimepoint: number | null,
     ensureInRange?: boolean
 }
 
-type SetTimeRangeTimeseriesSelectionAction = {
+type SetTimeRange = {
     type: 'SetTimeRange',
     timeRange: {min: number, max: number} | null
 }
 
-type ZoomTimeRangeTimeseriesSelectionAction = {
+type ZoomTimeRange = {
     type: 'ZoomTimeRange',
     factor?: number             // uses default if unset
     direction?: 'in' | 'out'    // default direction is 'in'. If direction is set to 'out', 'factor' is inverted.
 }
 
-type SetAmpScaleFactorTimeseriesSelectionAction = {
+type SetAmpScaleFactor = {
     type: 'SetAmpScaleFactor',
     ampScaleFactor: number
 }
 
-type ScaleAmpScaleFactorTimeseriesSelectionAction = {
+type ScaleAmpScaleFactor = {
     type: 'ScaleAmpScaleFactor',
     multiplier?: number         // uses default if unset
     direction?: 'up' | 'down'   // default direction is 'up'. If direction is set to 'down', multiplier is inverted.
@@ -98,12 +105,25 @@ type SetTimeseriesSelectionAction = {
     state: TimeseriesSelection
 }
 
-export type TimeseriesSelectionAction = SetStartEndTimeTimeseriesSelectionAction | SetTimeseriesSelectionTimeseriesSelectionAction | SetSelectedChannelNamesTimeseriesSelectionAction | SetVisibleChannelNamesTimeseriesSelectionAction | SetCurrentTimepointTimeseriesSelectionAction | SetTimeRangeTimeseriesSelectionAction | ZoomTimeRangeTimeseriesSelectionAction | SetAmpScaleFactorTimeseriesSelectionAction | ScaleAmpScaleFactorTimeseriesSelectionAction | SetTimeseriesSelectionAction
+type TimeShiftFrac = {
+    type: 'TimeShiftFrac',
+    frac: number
+}
+
+type GotoHome = {
+    type: 'GotoHome'
+}
+
+type GotoEnd = {
+    type: 'GotoEnd'
+}
+
+export type TimeseriesSelectionAction = SetStartEndTime | SetTimeseriesSelection | SetSelectedChannelNames | SetVisibleChannelNames | SetCurrentTimepoint | SetTimeRange | ZoomTimeRange | SetAmpScaleFactor | ScaleAmpScaleFactor | TimeShiftFrac | GotoHome | GotoEnd | SetTimeseriesSelectionAction
 
 const adjustTimeRangeToIncludeTimepoint = (timeRange: {min: number, max: number}, timepoint: number) => {
     if ((timeRange.min <= timepoint) && (timepoint < timeRange.max)) return timeRange
     const span = timeRange.max - timeRange.min
-    const t1 = Math.max(0, Math.floor(timepoint - span / 2))
+    const t1 = Math.max(0, timepoint - span / 2)
     const t2 = t1 + span
     return {min: t1, max: t2}
 }
@@ -147,7 +167,15 @@ export const timeseriesSelectionReducer: Reducer<TimeseriesSelection, Timeseries
         if (!timeRange) return state
         const direction = action.direction ?? 'in'
         const pre_factor = action.factor ?? TIME_ZOOM_FACTOR
-        const factor = direction === 'out' ? 1 / pre_factor : pre_factor
+        let factor = direction === 'out' ? 1 / pre_factor : pre_factor
+        if ((factor < 1) && (factor > 0)) {
+            if (state.maxTimeSpan !== undefined) {
+                const span = timeRange.max - timeRange.min
+                if (span / factor > state.maxTimeSpan) {
+                    factor = span / state.maxTimeSpan
+                }
+            }
+        }
         
         // if ((timeRange.max - timeRange.min) / factor > maxTimeSpan ) return state
         let t: number
@@ -182,6 +210,46 @@ export const timeseriesSelectionReducer: Reducer<TimeseriesSelection, Timeseries
             ampScaleFactor: (state.ampScaleFactor || 1) * multiplier
         }
     }
+    else if (action.type === 'TimeShiftFrac') {
+        const timeRange = state.timeRange
+        const currentTime = state.currentTimepoint
+        if (!timeRange) return state
+        const span = timeRange.max - timeRange.min
+        const shift = span * action.frac
+        const newTimeRange = {min: timeRange.min + shift, max: timeRange.max + shift}
+        const newCurrentTime = currentTime !== undefined ? currentTime + shift : undefined
+        return correctTimeseriesSelection({
+            ...state,
+            currentTimepoint: newCurrentTime,
+            timeRange: newTimeRange
+        })
+    }
+    else if (action.type === 'GotoHome') {
+        const timeRange = state.timeRange
+        if (!timeRange) return state
+        if (state.startTime === undefined) return state
+        const span = timeRange.max - timeRange.min
+        const newCurrentTime = state.startTime
+        const newTimeRange = {min: state.startTime, max: state.startTime + span}
+        return correctTimeseriesSelection({
+            ...state,
+            currentTimepoint: newCurrentTime,
+            timeRange: newTimeRange
+        })
+    }
+    else if (action.type === 'GotoEnd') {
+        const timeRange = state.timeRange
+        if (!timeRange) return state
+        if (state.endTime === undefined) return state
+        const span = timeRange.max - timeRange.min
+        const newCurrentTime = state.endTime
+        const newTimeRange = {min: state.endTime - span, max: state.endTime}
+        return correctTimeseriesSelection({
+            ...state,
+            currentTimepoint: newCurrentTime,
+            timeRange: newTimeRange
+        })
+    }
     else if (action.type === 'Set') {
         return correctTimeseriesSelection(action.state)
     }
@@ -193,5 +261,5 @@ const zoomTimeRange = (timeRange: {min: number, max: number}, factor: number, an
     const oldT2 = timeRange.max
     const t1 = anchorTime + (oldT1 - anchorTime) / factor
     const t2 = anchorTime + (oldT2 - anchorTime) / factor
-    return {min: Math.floor(t1), max: Math.floor(t2)}
+    return {min: t1, max: t2}
 }

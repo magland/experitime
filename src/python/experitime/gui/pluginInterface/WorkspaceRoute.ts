@@ -20,7 +20,13 @@ type WorkspaceTimeseriesRoute = {
     experimentId: string
     timeseriesName: string
 }
-export type WorkspaceRoute = WorkspaceMainRoute | WorkspaceExperimentRoute | WorkspaceTimeseriesRoute
+type WorkspaceTimeseriesMultipleRoute = {
+    workspaceUri?: string
+    page: 'timeseriesMultiple'
+    experimentId: string
+    timeseriesNames: string[]
+}
+export type WorkspaceRoute = WorkspaceMainRoute | WorkspaceExperimentRoute | WorkspaceTimeseriesRoute | WorkspaceTimeseriesMultipleRoute
 type GotoMainPageAction = {
     type: 'gotoMainPage'
 }
@@ -33,7 +39,12 @@ type GotoTimeseriesPageAction = {
     experimentId: string
     timeseriesName: string
 }
-export type WorkspaceRouteAction = GotoMainPageAction | GotoExperimentPageAction | GotoTimeseriesPageAction
+type GotoTimeseriesMultiplePageAction = {
+    type: 'gotoTimeseriesMultiplePage'
+    experimentId: string
+    timeseriesNames: string[]
+}
+export type WorkspaceRouteAction = GotoMainPageAction | GotoExperimentPageAction | GotoTimeseriesPageAction | GotoTimeseriesMultiplePageAction
 export type WorkspaceRouteDispatch = (a: WorkspaceRouteAction) => void
 
 export interface LocationInterface {
@@ -115,6 +126,12 @@ export const workspaceRouteReducer = (s: WorkspaceRoute, a: WorkspaceRouteAction
             page: 'timeseries',
             experimentId: a.experimentId,
             timeseriesName: a.timeseriesName,
+            workspaceUri: s.workspaceUri
+        }; break;
+        case 'gotoTimeseriesMultiplePage': newRoute = {
+            page: 'timeseriesMultiple',
+            experimentId: a.experimentId,
+            timeseriesNames: a.timeseriesNames,
             workspaceUri: s.workspaceUri
         }; break;
     }

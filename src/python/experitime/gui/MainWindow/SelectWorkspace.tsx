@@ -1,8 +1,8 @@
 import { Button } from '@material-ui/core'
 import React, { useCallback, useEffect, useState } from 'react'
 import { FunctionComponent } from "react"
-import Splitter from '../commonComponents/Splitter/Splitter'
 import { useVisible } from '../labbox'
+import ModalWindow from '../labbox/ApplicationBar/ModalWindow'
 import useRoute from '../route/useRoute'
 import AddWorkspaceInstructions from './AddWorkspaceInstructions'
 import WorkspaceList from './WorkspaceList'
@@ -16,7 +16,7 @@ type Props = {
 const SelectWorkspace: FunctionComponent<Props> = ({onUpdated, width, height}) => {
     const {setRoute} = useRoute()
     const [closing, setClosing] = useState(false) // hack for now
-    const {visible: instructionsVisible, show: showInstructions} = useVisible()
+    const {visible: instructionsVisible, show: showInstructions, hide: hideInstructions} = useVisible()
 
     // const [editWorkspaceUri, setEditWorkspaceUri] = useState<string>('')
     // useEffect(() => {
@@ -43,27 +43,18 @@ const SelectWorkspace: FunctionComponent<Props> = ({onUpdated, width, height}) =
     // const selectDisabled = (!editWorkspaceUri)
 
     return (
-        <Splitter
-            {...{width, height}}
-            initialPosition={300}
-            positionFromRight={true}
-        >
-            <div>
-                {
-                    !instructionsVisible && (
-                        <div><Button onClick={showInstructions}>Add workspace</Button></div>
-                    )
-                }
-                {/* <TextField style={{width: '100%'}} label="Workspace URI" value={editWorkspaceUri} onChange={evt => setEditWorkspaceUri(evt.target.value)} />
-                <Button disabled={selectDisabled} onClick={handleSelect}>Select</Button> */}
-                <WorkspaceList onWorkspaceSelected={handleWorkspaceSelected}/>
-            </div>
-            {
-                instructionsVisible && (
-                    <AddWorkspaceInstructions />
-                )
-            }
-        </Splitter>
+        <div>
+            <div><Button onClick={showInstructions}>Add workspace</Button></div>
+            {/* <TextField style={{width: '100%'}} label="Workspace URI" value={editWorkspaceUri} onChange={evt => setEditWorkspaceUri(evt.target.value)} />
+            <Button disabled={selectDisabled} onClick={handleSelect}>Select</Button> */}
+            <WorkspaceList onWorkspaceSelected={handleWorkspaceSelected}/>
+            <ModalWindow
+                open={instructionsVisible}
+                onClose={hideInstructions}
+            >
+                <AddWorkspaceInstructions />
+            </ModalWindow>
+        </div>
     )
 }
 
